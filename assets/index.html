@@ -2,778 +2,986 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>نظام</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #000000;
-            --surface-dark: #121212;
+            --bg-body: #000000;
+            --surface: #121212;
+            --surface-elevated: #1c1c1e;
+            --surface-input: #262626;
+            --text-primary: #ffffff;
+            --text-secondary: #a8a8a8;
             --bubble-received: #262626;
-            --bubble-sent-grad: linear-gradient(135deg, #7024c4, #c13584, #e1306c, #fd1d1d);
-            --text-light: #ffffff;
-            --text-muted: #8e8e8e;
-            --border-color: #1f1f1f;
+            --bubble-sent: linear-gradient(135deg, #7024c4 0%, #c13584 50%, #f77737 100%);
+            --online-color: #10d860;
+            --border-subtle: #2d2d2d;
+            --active-overlay: rgba(255, 255, 255, 0.08);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            user-select: none;
             -webkit-tap-highlight-color: transparent;
             font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif;
+            user-select: none;
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-light);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
             height: 100vh;
+            width: 100vw;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* شاشة القفل السرية */
+        /* شاشة القفل */
         #lockScreen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             background: #000000;
-            z-index: 9999;
+            z-index: 1000;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 24px;
         }
 
-        .lock-icon {
-            font-size: 40px;
+        .lock-icon-wrapper {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--surface-elevated);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-bottom: 20px;
-            color: #ffffff;
         }
 
         .lock-title {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 700;
-            color: #efefef;
-            margin-bottom: 24px;
+            color: var(--text-primary);
+            margin-bottom: 28px;
         }
 
-        .pin-dots {
+        .dots-row {
             display: flex;
-            gap: 16px;
-            margin-bottom: 35px;
+            gap: 18px;
+            margin-bottom: 40px;
         }
 
-        .pin-dot {
-            width: 14px;
-            height: 14px;
+        .dot-indicator {
+            width: 15px;
+            height: 15px;
             border-radius: 50%;
             border: 2px solid #555;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
         }
 
-        .pin-dot.filled {
-            background-color: #ffffff;
-            border-color: #ffffff;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        .dot-indicator.active {
+            background-color: #fff;
+            border-color: #fff;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+            transform: scale(1.15);
         }
 
-        .keypad {
+        .keypad-grid {
             display: grid;
-            grid-template-columns: repeat(3, 72px);
-            gap: 18px;
+            grid-template-columns: repeat(3, 76px);
+            gap: 16px;
         }
 
-        .key-btn {
-            width: 72px;
-            height: 72px;
+        .num-key {
+            width: 76px;
+            height: 76px;
             border-radius: 50%;
-            background: #1c1c1e;
-            color: #ffffff;
+            background: var(--surface-elevated);
             border: none;
-            font-size: 1.6rem;
+            color: #fff;
+            font-size: 1.7rem;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            transition: background-color 0.1s;
         }
 
-        .key-btn:active {
-            background: #333336;
+        .num-key:active {
+            background: #3a3a3c;
         }
 
-        /* الشريط العلوي للإنستغرام */
-        header.insta-header {
-            height: 58px;
-            background: var(--bg-dark);
-            border-bottom: 1px solid var(--border-color);
+        /* شريط إنستغرام العلوي */
+        header.insta-bar {
+            height: 56px;
+            background: var(--bg-body);
+            border-bottom: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 12px;
-            z-index: 10;
+            padding: 0 10px;
+            z-index: 20;
+            flex-shrink: 0;
         }
 
-        .header-profile {
+        .profile-section {
             display: flex;
             align-items: center;
             gap: 10px;
+            flex: 1;
         }
 
-        .avatar-box {
+        .header-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .header-btn:active {
+            background: var(--active-overlay);
+        }
+
+        .avatar-wrap {
             position: relative;
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
         }
 
-        .avatar-circle {
+        .avatar-img {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: #2a2a2a;
+            background: linear-gradient(135deg, #444, #222);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
             font-size: 1.1rem;
             color: #fff;
-            border: 1px solid #3a3a3a;
+            border: 1px solid #333;
         }
 
-        .online-dot {
+        .badge-online {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 11px;
-            height: 11px;
-            background: #00ba34;
-            border: 2px solid #000;
+            bottom: -1px;
+            left: -1px;
+            width: 12px;
+            height: 12px;
+            background-color: var(--online-color);
+            border: 2.5px solid #000;
             border-radius: 50%;
         }
 
-        .header-details {
+        .identity {
             display: flex;
             flex-direction: column;
-        }
-
-        .user-name {
-            font-size: 1rem;
-            font-weight: 800;
-            color: #ffffff;
-            line-height: 1.2;
-        }
-
-        .user-status {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 14px;
-            align-items: center;
-        }
-
-        .icon-btn {
-            background: none;
-            border: none;
-            color: #ffffff;
-            font-size: 1.25rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
             justify-content: center;
         }
 
-        /* حاوية الرسائل */
-        #chatMessages {
+        .contact-title {
+            font-size: 0.98rem;
+            font-weight: 800;
+            line-height: 1.2;
+            color: #fff;
+        }
+
+        .status-sub {
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+        }
+
+        .actions-section {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        /* شريط أدوات التجريب السريع (Testing HUD) */
+        .test-hud {
+            background: #151515;
+            border-bottom: 1px solid #292929;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .hud-badge {
+            background: #2a2a2a;
+            color: #ff9800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .hud-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .hud-btn {
+            background: #282828;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .hud-btn:active {
+            background: #0095f6;
+            border-color: #0095f6;
+        }
+
+        /* منطقة المحادثة */
+        #chatFlow {
             flex: 1;
             overflow-y: auto;
-            padding: 16px 14px;
+            padding: 14px 12px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            scroll-behavior: smooth;
+            gap: 6px;
+            -webkit-overflow-scrolling: touch;
         }
 
-        .empty-placeholder {
+        .system-notice {
             margin: auto;
             text-align: center;
-            color: var(--text-muted);
-            font-size: 0.92rem;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
             line-height: 1.6;
-            max-width: 280px;
+            max-width: 300px;
+            padding: 20px 10px;
         }
 
-        .msg-row {
+        .bubble-row {
             display: flex;
             flex-direction: column;
             width: 100%;
+            animation: popIn 0.18s ease-out;
         }
 
-        .msg-row.sent {
+        @keyframes popIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bubble-row.mine {
             align-items: flex-end;
         }
 
-        .msg-row.received {
+        .bubble-row.their {
             align-items: flex-start;
         }
 
-        .bubble {
+        .bubble-content {
             max-width: 76%;
-            padding: 10px 14px;
+            padding: 9px 14px;
             font-size: 0.95rem;
             line-height: 1.45;
             word-break: break-word;
             white-space: pre-wrap;
+            position: relative;
         }
 
-        .msg-row.sent .bubble {
-            background: var(--bubble-sent-grad);
-            color: #ffffff;
+        .bubble-row.mine .bubble-content {
+            background: var(--bubble-sent);
+            color: #fff;
             border-radius: 18px 18px 4px 18px;
         }
 
-        .msg-row.received .bubble {
-            background-color: var(--bubble-received);
-            color: #ffffff;
+        .bubble-row.their .bubble-content {
+            background: var(--bubble-received);
+            color: #fff;
             border-radius: 18px 18px 18px 4px;
         }
 
-        .msg-time {
+        .time-label {
             font-size: 0.65rem;
-            color: #666;
-            margin-top: 3px;
+            color: #777;
+            margin-top: 2px;
             padding: 0 4px;
         }
 
-        /* الشريط السفلي الوهمي للإنستغرام */
-        .insta-footer {
-            height: 52px;
-            background: var(--bg-dark);
+        /* شريط إدخال إنستغرام السفلي */
+        footer.insta-bottom {
+            min-height: 54px;
+            background: var(--bg-body);
+            border-top: 1px solid var(--border-subtle);
             padding: 6px 12px;
             display: flex;
             align-items: center;
             gap: 10px;
-            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
         }
 
-        .footer-camera {
-            width: 32px;
-            height: 32px;
-            background: #0095f6;
+        .camera-badge {
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
+            background: #0095f6;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.95rem;
             color: #fff;
+            font-size: 1rem;
+            flex-shrink: 0;
         }
 
-        .footer-input {
+        .input-pill {
             flex: 1;
-            height: 38px;
-            background: #262626;
+            height: 40px;
+            background: var(--surface-input);
             border-radius: 20px;
             display: flex;
             align-items: center;
             padding: 0 14px;
-            font-size: 0.88rem;
-            color: var(--text-muted);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            justify-content: space-between;
         }
 
-        .footer-icons {
+        .input-icons {
             display: flex;
             gap: 12px;
             font-size: 1.15rem;
             color: #fff;
+            align-items: center;
         }
 
-        /* نافذة الإعدادات وضبط الرمز السري */
-        .modal {
+        /* النافذة المنبثقة للإعدادات والتجريب */
+        .modal-shade {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 500;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 800;
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 16px;
         }
 
-        .modal-content {
-            background: #181818;
+        .modal-box {
+            background: var(--surface);
             border: 1px solid #333;
-            border-radius: 16px;
+            border-radius: 18px;
             width: 100%;
-            max-width: 400px;
-            padding: 20px;
-            max-height: 85vh;
+            max-width: 440px;
+            max-height: 90vh;
             overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
         }
 
-        .modal-title {
+        .modal-header-text {
             font-size: 1.2rem;
             font-weight: 800;
-            margin-bottom: 16px;
             text-align: center;
-            border-bottom: 1px solid #2a2a2a;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
-        .field-group {
-            margin-bottom: 14px;
+        .cfg-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
-        .field-label {
-            display: block;
+        .cfg-title {
             font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
+            font-weight: 700;
+            color: var(--text-secondary);
         }
 
-        .text-input {
+        .input-styled {
             width: 100%;
-            background: #262626;
-            border: 1px solid #3d3d3d;
+            background: var(--surface-input);
+            border: 1px solid #3a3a3a;
             border-radius: 8px;
             padding: 10px 12px;
-            color: #ffffff;
+            color: #fff;
             font-size: 0.95rem;
-            direction: ltr;
-            text-align: center;
+            outline: none;
         }
 
-        .btn-action {
+        .btn-ui {
             width: 100%;
-            background: #0095f6;
-            color: #ffffff;
-            border: none;
-            padding: 12px;
+            min-height: 44px;
             border-radius: 8px;
+            border: none;
             font-weight: 700;
             font-size: 0.95rem;
             cursor: pointer;
-            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.15s;
         }
 
-        .btn-action:active {
-            opacity: 0.85;
+        .btn-ui:active {
+            opacity: 0.8;
         }
 
-        .btn-danger {
-            background: #c62828;
-            margin-top: 10px;
+        .btn-primary { background: #0095f6; color: #fff; }
+        .btn-success { background: #238636; color: #fff; }
+        .btn-danger { background: #b3261e; color: #fff; }
+        .btn-cancel { background: #2c2c2e; color: #eee; }
+
+        .speed-bar {
+            display: flex;
+            gap: 6px;
         }
 
-        .btn-close {
-            background: #333;
-            color: #ddd;
-            margin-top: 10px;
+        .speed-btn {
+            flex: 1;
+            height: 36px;
+            background: #262626;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .speed-btn.active {
+            background: #0095f6;
+            border-color: #0095f6;
         }
     </style>
 </head>
 <body>
 
-    <!-- 1. شاشة القفل السرية (الرمز الافتراضي: 0000) -->
+    <!-- 1. شاشة القفل التفاعلية الموثوقة -->
     <div id="lockScreen">
-        <div class="lock-icon">🔒</div>
-        <div class="lock-title">نظام الحماية</div>
-        <div class="pin-dots">
-            <div class="pin-dot" id="dot0"></div>
-            <div class="pin-dot" id="dot1"></div>
-            <div class="pin-dot" id="dot2"></div>
-            <div class="pin-dot" id="dot3"></div>
+        <div class="lock-icon-wrapper">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
         </div>
-        <div class="keypad">
-            <button class="key-btn" onclick="pressPin('1')">1</button>
-            <button class="key-btn" onclick="pressPin('2')">2</button>
-            <button class="key-btn" onclick="pressPin('3')">3</button>
-            <button class="key-btn" onclick="pressPin('4')">4</button>
-            <button class="key-btn" onclick="pressPin('5')">5</button>
-            <button class="key-btn" onclick="pressPin('6')">6</button>
-            <button class="key-btn" onclick="pressPin('7')">7</button>
-            <button class="key-btn" onclick="pressPin('8')">8</button>
-            <button class="key-btn" onclick="pressPin('9')">9</button>
-            <button class="key-btn" style="font-size: 1.1rem;" onclick="clearPin()">C</button>
-            <button class="key-btn" onclick="pressPin('0')">0</button>
-            <button class="key-btn" style="font-size: 1.2rem;" onclick="backspacePin()">⌫</button>
+        <div class="lock-title">نظام الحماية</div>
+        <div class="dots-row">
+            <div class="dot-indicator" id="d0"></div>
+            <div class="dot-indicator" id="d1"></div>
+            <div class="dot-indicator" id="d2"></div>
+            <div class="dot-indicator" id="d3"></div>
+        </div>
+        <div class="keypad-grid">
+            <button class="num-key" onclick="pushDigit('1')">1</button>
+            <button class="num-key" onclick="pushDigit('2')">2</button>
+            <button class="num-key" onclick="pushDigit('3')">3</button>
+            <button class="num-key" onclick="pushDigit('4')">4</button>
+            <button class="num-key" onclick="pushDigit('5')">5</button>
+            <button class="num-key" onclick="pushDigit('6')">6</button>
+            <button class="num-key" onclick="pushDigit('7')">7</button>
+            <button class="num-key" onclick="pushDigit('8')">8</button>
+            <button class="num-key" onclick="pushDigit('9')">9</button>
+            <button class="num-key" style="font-size: 1.1rem; color: #ff5252;" onclick="resetPinInput()">مسح</button>
+            <button class="num-key" onclick="pushDigit('0')">0</button>
+            <button class="num-key" style="font-size: 1.3rem;" onclick="popDigit()">⌫</button>
         </div>
     </div>
 
-    <!-- 2. الشريط العلوي بنمط إنستغرام -->
-    <header class="insta-header">
-        <div class="header-profile">
-            <button class="icon-btn" onclick="lockNow()">❯</button>
-            <div class="avatar-box">
-                <div class="avatar-circle">M</div>
-                <div class="online-dot"></div>
+    <!-- 2. ترويسة إنستغرام الأصلية -->
+    <header class="insta-bar">
+        <div class="profile-section">
+            <button class="header-btn" onclick="relockApp()" title="قفل الآن">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+            <div class="avatar-wrap">
+                <div class="avatar-img">M</div>
+                <div class="badge-online"></div>
             </div>
-            <div class="header-details">
-                <span class="user-name">مريم</span>
-                <span class="user-status">نشط الآن</span>
+            <div class="identity">
+                <span class="contact-title">مريم</span>
+                <span class="status-sub">نشط الآن</span>
             </div>
         </div>
-        <div class="header-actions">
-            <button class="icon-btn" onclick="openSettingsModal()" title="الإعدادات وضبط الرمز">⚙️</button>
-            <button class="icon-btn">📞</button>
-            <button class="icon-btn">📹</button>
+        <div class="actions-section">
+            <button class="header-btn" onclick="toggleConfigModal()" title="إعدادات التجريب">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
+            <button class="header-btn" title="اتصال">
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                </svg>
+            </button>
         </div>
     </header>
 
-    <!-- 3. منطقة الرسائل والبث اللحظي -->
-    <main id="chatMessages">
-        <div class="empty-placeholder" id="placeholder">
-            اضغط على أيقونة الإعدادات (⚙️) بالأعلى لرفع ملف المحادثة أو لصق النص، وضبط الرمز السري.
+    <!-- 3. شريط أدوات التجريب السريع (Fast Testing HUD) -->
+    <div class="test-hud">
+        <div>
+            <span>الحالة: </span>
+            <span class="hud-badge" id="hudStatus">جاهز</span>
+            <span id="hudRemaining" style="margin-right: 6px;">(متبقي: 0)</span>
+        </div>
+        <div class="hud-actions">
+            <button class="hud-btn" onclick="fireNextMessageImmediately()">إرسال التالية الآن ⚡</button>
+            <button class="hud-btn" onclick="toggleConfigModal()">تحكم ⚙️</button>
+        </div>
+    </div>
+
+    <!-- 4. ساحة عرض الرسائل -->
+    <main id="chatFlow">
+        <div class="system-notice" id="initialNotice">
+            المحادثة فارغة حالياً.<br>
+            اضغط على زر <b>تحكم ⚙️</b> في الأعلى لاختيار ملف المحادثة، ضبط سرعة البث، أو إدخال توقيت مخصص للتجريب.
         </div>
     </main>
 
-    <!-- 4. شريط الإدخال السفلي للإنستغرام -->
-    <footer class="insta-footer">
-        <div class="footer-camera">📷</div>
-        <div class="footer-input">مراسلة...</div>
-        <div class="footer-icons">
-            <span>🎙️</span>
-            <span>🖼️</span>
-            <span>❤️</span>
+    <!-- 5. شريط الإدخال السفلي -->
+    <footer class="insta-bottom">
+        <div class="camera-badge">📷</div>
+        <div class="input-pill">
+            <span>مراسلة...</span>
+            <div class="input-icons">
+                <span>🎙️</span>
+                <span>🖼️</span>
+                <span>❤️</span>
+            </div>
         </div>
     </footer>
 
-    <!-- 5. نافذة الإعدادات وتعديل الرمز السري ورفع البيانات -->
-    <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <div class="modal-title">إعدادات النظام</div>
+    <!-- 6. مركز التحكم والإعدادات والتجريب (Control Center) -->
+    <div class="modal-shade" id="configModal">
+        <div class="modal-box">
+            <div class="modal-header-text">لوحة التحكم والتجريب</div>
 
-            <!-- قسم تعديل الرمز السري -->
-            <div class="field-group">
-                <label class="field-label">الرمز السري الحالي:</label>
-                <input type="password" id="currentPinInput" class="text-input" maxlength="4" placeholder="••••">
+            <!-- سرعة المحاكاة للتجريب السريع -->
+            <div class="cfg-group">
+                <span class="cfg-title">سرعة محاكاة الوقت (للتجريب السريع):</span>
+                <div class="speed-bar">
+                    <button class="speed-btn active" id="spd1" onclick="setTimeSpeed(1)">1x (عادي)</button>
+                    <button class="speed-btn" id="spd10" onclick="setTimeSpeed(10)">10x</button>
+                    <button class="speed-btn" id="spd60" onclick="setTimeSpeed(60)">60x (سريع)</button>
+                </div>
             </div>
-            <div class="field-group">
-                <label class="field-label">الرمز السري الجديد (4 أرقام):</label>
-                <input type="password" id="newPinInput" class="text-input" maxlength="4" placeholder="••••">
-            </div>
-            <button class="btn-action" onclick="saveNewPin()">تحديث رمز القفل</button>
 
-            <hr style="border: 0; border-top: 1px solid #333; margin: 18px 0;">
-
-            <!-- قسم استيراد المحادثة -->
-            <div class="field-group">
-                <label class="field-label">استيراد ملف المحادثة (.txt):</label>
-                <input type="file" id="fileUploadInput" accept=".txt" style="color: #bbb; font-size: 0.85rem;" onchange="handleFileSelected(event)">
+            <!-- إطلاق يدوي للرسائل -->
+            <div class="cfg-group">
+                <span class="cfg-title">تجربة لحظية:</span>
+                <button class="btn-ui btn-primary" onclick="fireNextMessageImmediately(); toggleConfigModal();">
+                    إرسال الرسالة التالية فوراً دون انتظار ⚡
+                </button>
             </div>
-            <div class="field-group">
-                <label class="field-label">أو الصق نص المحادثة هنا مباشرة:</label>
-                <textarea id="rawChatPaste" class="text-input" style="height: 70px; direction: rtl; text-align: right; resize: none;" placeholder="الصق النص هنا..."></textarea>
-            </div>
-            <button class="btn-action" style="background:#2e7d32;" onclick="processPastedChat()">بدء المحاكاة بالوقت الفعلي</button>
 
-            <button class="btn-action btn-danger" onclick="resetAllChat()">مسح المحادثة وإعادة البدء</button>
-            <button class="btn-action btn-close" onclick="closeSettingsModal()">إغلاق</button>
+            <hr style="border: 0; border-top: 1px solid var(--border-subtle);">
+
+            <!-- استيراد البيانات -->
+            <div class="cfg-group">
+                <span class="cfg-title">رفع ملف المحادثة المصدّر (.txt):</span>
+                <input type="file" id="filePicker" accept=".txt" class="input-styled" onchange="onFileUploaded(event)">
+            </div>
+
+            <div class="cfg-group">
+                <span class="cfg-title">أو لصق نص المحادثة مباشرة:</span>
+                <textarea id="pasteBox" class="input-styled" style="height: 75px; direction: rtl; resize: none;" placeholder="الصق أسطر الشات هنا..."></textarea>
+                <button class="btn-ui btn-success" onclick="processTextPasted()">معالجة وبدء البث</button>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-subtle);">
+
+            <!-- ضبط رمز القفل -->
+            <div class="cfg-group">
+                <span class="cfg-title">تعديل الرمز السري:</span>
+                <div style="display: flex; gap: 8px;">
+                    <input type="password" id="oldPin" class="input-styled" maxlength="4" placeholder="الرمز الحالي" style="text-align: center;">
+                    <input type="password" id="newPin" class="input-styled" maxlength="4" placeholder="الرمز الجديد" style="text-align: center;">
+                </div>
+                <button class="btn-ui btn-primary" style="margin-top: 4px;" onclick="updateSecretPin()">حفظ الرمز السري الجديد</button>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-subtle);">
+
+            <button class="btn-ui btn-danger" onclick="clearAllData()">مسح كافة البيانات وإعادة التهيئة</button>
+            <button class="btn-ui btn-cancel" onclick="toggleConfigModal()">إغلاق النافذة</button>
         </div>
     </div>
 
     <script>
-        // نظام الصوت التنبيهي عبر Web Audio API
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playChime() {
+        // --- 1. نظام تشغيل الصوت (Web Audio API Chime) ---
+        let audioCtx;
+        function playChimeTone() {
             try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.09, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
+                osc.stop(audioCtx.currentTime + 0.25);
             } catch(e) {}
         }
 
-        // إدارة الرمز السري (الافتراضي 0000)
-        let currentEnteredPin = "";
+        // --- 2. إدارة الرمز السري وشاشة القفل ---
+        let enteredPin = "";
         function getStoredPin() {
-            return localStorage.getItem('system_pin') || "0000";
+            return localStorage.getItem('app_secure_pin') || "0000";
         }
 
-        function pressPin(digit) {
-            if (currentEnteredPin.length < 4) {
-                currentEnteredPin += digit;
-                updateDots();
-                if (currentEnteredPin.length === 4) {
-                    setTimeout(validatePin, 100);
+        function pushDigit(num) {
+            if (enteredPin.length < 4) {
+                enteredPin += num;
+                refreshDots();
+                if (enteredPin.length === 4) {
+                    setTimeout(validateEnteredPin, 80);
                 }
             }
         }
 
-        function backspacePin() {
-            currentEnteredPin = currentEnteredPin.slice(0, -1);
-            updateDots();
+        function popDigit() {
+            enteredPin = enteredPin.slice(0, -1);
+            refreshDots();
         }
 
-        function clearPin() {
-            currentEnteredPin = "";
-            updateDots();
+        function resetPinInput() {
+            enteredPin = "";
+            refreshDots();
         }
 
-        function updateDots() {
+        function refreshDots() {
             for (let i = 0; i < 4; i++) {
-                const dot = document.getElementById('dot' + i);
-                if (i < currentEnteredPin.length) dot.classList.add('filled');
-                else dot.classList.remove('filled');
+                const el = document.getElementById('d' + i);
+                if (i < enteredPin.length) el.classList.add('active');
+                else el.classList.remove('active');
             }
         }
 
-        function validatePin() {
-            if (currentEnteredPin === getStoredPin()) {
+        function validateEnteredPin() {
+            if (enteredPin === getStoredPin()) {
                 document.getElementById('lockScreen').style.display = 'none';
-                currentEnteredPin = "";
-                updateDots();
+                resetPinInput();
             } else {
-                alert("رمز المرور غير صحيح");
-                clearPin();
+                alert("رمز المرور غير صحيح!");
+                resetPinInput();
             }
         }
 
-        function lockNow() {
+        function relockApp() {
+            resetPinInput();
             document.getElementById('lockScreen').style.display = 'flex';
-            clearPin();
         }
 
-        function saveNewPin() {
-            const cur = document.getElementById('currentPinInput').value;
-            const next = document.getElementById('newPinInput').value;
+        function updateSecretPin() {
+            const current = document.getElementById('oldPin').value;
+            const updated = document.getElementById('newPin').value;
 
-            if (cur !== getStoredPin()) {
+            if (current !== getStoredPin()) {
                 alert("الرمز الحالي غير صحيح");
                 return;
             }
-            if (!/^\d{4}$/.test(next)) {
-                alert("الرمز الجديد يجب أن يتكون من 4 أرقام");
+            if (!/^\d{4}$/.test(updated)) {
+                alert("الرمز الجديد يجب أن يتكون من 4 أرقام حصراً");
                 return;
             }
 
-            localStorage.setItem('system_pin', next);
-            alert("تم تحديث رمز القفل بنجاح");
-            document.getElementById('currentPinInput').value = "";
-            document.getElementById('newPinInput').value = "";
-            closeSettingsModal();
+            localStorage.setItem('app_secure_pin', updated);
+            alert("تم حفظ الرمز السري بنجاح: " + updated);
+            document.getElementById('oldPin').value = "";
+            document.getElementById('newPin').value = "";
+            toggleConfigModal();
         }
 
-        function openSettingsModal() {
-            document.getElementById('settingsModal').style.display = 'flex';
-        }
+        // --- 3. محرك تحليل النصوص (Regex Parser) ---
+        const chatRegex = /^\[?[\u200e\u200f\u202a-\u202e]?(\d{1,4}[\/\.\-]\d{1,2}[\/\.\-]\d{1,4})[،,\s]+([\d:]+)\s*([صمAPMapm]*)\]?\s*[-–:]?\s*([^:]+):\s*(.*)$/;
 
-        function closeSettingsModal() {
-            document.getElementById('settingsModal').style.display = 'none';
-        }
+        function parseChatStream(rawText) {
+            const lines = rawText.split('\n');
+            const messages = [];
+            let current = null;
 
-        // محرك قراءة واستيراد المحادثات
-        const msgRegex = /^\[?[\u200e\u200f\u202a-\u202e]?(\d{1,4}[\/\.\-]\d{1,2}[\/\.\-]\d{1,4})[،,\s]+([\d:]+)\s*([صمAPMapm]*)\]?\s*[-–:]?\s*([^:]+):\s*(.*)$/;
+            for (let rawLine of lines) {
+                let clean = rawLine.replace(/[\u200e\u200f\u202a-\u202e‏]/g, '').trim();
+                if (!clean) continue;
 
-        function parseRawChat(text) {
-            const lines = text.split('\n');
-            const parsed = [];
-            let last = null;
-
-            for (let raw of lines) {
-                let line = raw.replace(/[\u200e\u200f\u202a-\u202e‏]/g, '').trim();
-                if (!line) continue;
-
-                let match = line.match(msgRegex);
+                let match = clean.match(chatRegex);
                 if (match) {
                     let d = match[1].replace(/\//g, '-').replace(/\./g, '-');
                     let t = match[2];
                     let ap = match[3] || '';
                     let sender = match[4].trim();
-                    let content = match[5].trim();
+                    let body = match[5].trim();
 
-                    let timestamp = parseCustomDate(d, t, ap);
+                    let timestamp = convertToTimestamp(d, t, ap);
                     if (timestamp) {
-                        let isMe = sender.toLowerCase().includes("majd") || sender.includes("مجد");
-                        last = { id: Date.now() + Math.random(), sender, message: content, timestamp, isMe };
-                        parsed.push(last);
+                        let isMine = sender.toLowerCase().includes("majd") || sender.includes("مجد");
+                        current = { id: Date.now() + Math.random(), sender, message: body, timestamp, isMine };
+                        messages.push(current);
                     }
-                } else if (last) {
-                    last.message += "\n" + line;
+                } else if (current) {
+                    current.message += "\n" + clean;
                 }
             }
-            return parsed;
+            return messages;
         }
 
-        function parseCustomDate(dateStr, timeStr, ampm) {
+        function convertToTimestamp(dateStr, timeStr, ampm) {
             try {
-                let parts = dateStr.split('-');
-                let day, month, year;
-                if (parts[0].length === 4) {
-                    year = parseInt(parts[0]); month = parseInt(parts[1]) - 1; day = parseInt(parts[2]);
+                let p = dateStr.split('-');
+                let y, m, d;
+                if (p[0].length === 4) {
+                    y = parseInt(p[0]); m = parseInt(p[1]) - 1; d = parseInt(p[2]);
                 } else {
-                    day = parseInt(parts[0]); month = parseInt(parts[1]) - 1; year = parseInt(parts[2]);
-                    if (year < 100) year += 2000;
+                    d = parseInt(p[0]); m = parseInt(p[1]) - 1; y = parseInt(p[2]);
+                    if (y < 100) y += 2000;
                 }
 
-                let tParts = timeStr.split(':');
-                let h = parseInt(tParts[0]);
-                let m = parseInt(tParts[1]);
-                let s = tParts[2] ? parseInt(tParts[2]) : 0;
+                let tp = timeStr.split(':');
+                let hr = parseInt(tp[0]);
+                let min = parseInt(tp[1]);
+                let sec = tp[2] ? parseInt(tp[2]) : 0;
 
-                if ((ampm.includes('م') || ampm.toUpperCase().includes('PM')) && h < 12) h += 12;
-                if ((ampm.includes('ص') || ampm.toUpperCase().includes('AM')) && h === 12) h = 0;
+                if ((ampm.includes('م') || ampm.toUpperCase().includes('PM')) && hr < 12) hr += 12;
+                if ((ampm.includes('ص') || ampm.toUpperCase().includes('AM')) && hr === 12) hr = 0;
 
-                return new Date(year, month, day, h, m, s).getTime();
+                return new Date(y, m, d, hr, min, sec).getTime();
             } catch(e) {
                 return null;
             }
         }
 
-        function handleFileSelected(e) {
+        // --- 4. إدارة البيانات والمحاكاة اللحظية ---
+        let pendingList = [];
+        let deliveredList = [];
+        let simulationOffset = 0;
+        let speedMultiplier = 1;
+        let tickInterval = null;
+
+        function loadStoredState() {
+            pendingList = JSON.parse(localStorage.getItem('sys_pending') || '[]');
+            deliveredList = JSON.parse(localStorage.getItem('sys_delivered') || '[]');
+            simulationOffset = parseInt(localStorage.getItem('sys_offset') || '0');
+            speedMultiplier = parseInt(localStorage.getItem('sys_speed') || '1');
+
+            updateSpeedButtonsUI();
+            renderAllDelivered();
+            refreshHud();
+
+            if (tickInterval) clearInterval(tickInterval);
+            tickInterval = setInterval(engineTick, 1000);
+        }
+
+        function setTimeSpeed(mult) {
+            speedMultiplier = mult;
+            localStorage.setItem('sys_speed', mult.toString());
+            updateSpeedButtonsUI();
+            refreshHud();
+        }
+
+        function updateSpeedButtonsUI() {
+            ['spd1', 'spd10', 'spd60'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('active');
+            });
+            const cur = document.getElementById('spd' + speedMultiplier);
+            if (cur) cur.classList.add('active');
+        }
+
+        function engineTick() {
+            if (pendingList.length === 0 || simulationOffset === 0) return;
+
+            // حساب الوقت الافتراضي مع معامل التسريع
+            const now = Date.now();
+            const simulatedCurrentTime = simulationOffset + ((now - simulationOffset) * speedMultiplier);
+
+            let triggered = false;
+            while (pendingList.length > 0 && pendingList[0].timestamp <= simulatedCurrentTime) {
+                const msg = pendingList.shift();
+                deliveredList.push(msg);
+                appendMessageToUI(msg);
+                triggered = true;
+
+                if (!msg.isMine) {
+                    playChimeTone();
+                }
+            }
+
+            if (triggered) {
+                saveState();
+                refreshHud();
+                autoScrollBottom();
+            }
+        }
+
+        // إرسال الرسالة التالية فوراً (ميزة التجريب السريع)
+        function fireNextMessageImmediately() {
+            if (pendingList.length === 0) {
+                alert("لا توجد رسائل متبقية في قائمة الانتظار");
+                return;
+            }
+
+            const next = pendingList.shift();
+            // تعديل نقطة البداية لتتطابق مع اللحظة الحالية
+            simulationOffset = Date.now() - (next.timestamp - pendingList.length);
+            localStorage.setItem('sys_offset', simulationOffset.toString());
+
+            deliveredList.push(next);
+            appendMessageToUI(next);
+            if (!next.isMine) playChimeTone();
+
+            saveState();
+            refreshHud();
+            autoScrollBottom();
+        }
+
+        function saveState() {
+            localStorage.setItem('sys_pending', JSON.stringify(pendingList));
+            localStorage.setItem('sys_delivered', JSON.stringify(deliveredList));
+        }
+
+        function refreshHud() {
+            document.getElementById('hudRemaining').innerText = `(متبقي: ${pendingList.length})`;
+            document.getElementById('hudStatus').innerText = pendingList.length > 0 ? `نشط (${speedMultiplier}x)` : "مكتمل";
+        }
+
+        function renderAllDelivered() {
+            const container = document.getElementById('chatFlow');
+            if (deliveredList.length > 0) {
+                container.innerHTML = '';
+                deliveredList.forEach(appendMessageToUI);
+                autoScrollBottom();
+            }
+        }
+
+        function appendMessageToUI(msg) {
+            const initialNotice = document.getElementById('initialNotice');
+            if (initialNotice) initialNotice.remove();
+
+            const flow = document.getElementById('chatFlow');
+            const row = document.createElement('div');
+            row.className = 'bubble-row ' + (msg.isMine ? 'mine' : 'their');
+
+            const dateObj = new Date(msg.timestamp);
+            let h = dateObj.getHours();
+            const m = dateObj.getMinutes().toString().padStart(2, '0');
+            const ampm = h >= 12 ? 'م' : 'ص';
+            h = h % 12 || 12;
+
+            row.innerHTML = `
+                <div class="bubble-content">${escapeSafe(msg.message)}</div>
+                <div class="time-label">${h}:${m} ${ampm}</div>
+            `;
+            flow.appendChild(row);
+        }
+
+        function autoScrollBottom() {
+            const flow = document.getElementById('chatFlow');
+            flow.scrollTop = flow.scrollHeight;
+        }
+
+        function escapeSafe(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // --- 5. استيراد ملفات المحادثة ---
+        function onFileUploaded(e) {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(evt) {
-                initNewChatData(evt.target.result);
+                initNewData(evt.target.result);
             };
             reader.readAsText(file);
         }
 
-        function processPastedChat() {
-            const val = document.getElementById('rawChatPaste').value;
+        function processTextPasted() {
+            const val = document.getElementById('pasteBox').value;
             if (!val.trim()) {
                 alert("يرجى لصق النص أولاً");
                 return;
             }
-            initNewChatData(val);
+            initNewData(val);
         }
 
-        function initNewChatData(rawText) {
-            const list = parseRawChat(rawText);
-            if (list.length === 0) {
-                alert("تعذر قراءة الرسائل، تأكد من صحة نص تصدير واتساب");
+        function initNewData(rawContent) {
+            const parsed = parseChatStream(rawContent);
+            if (parsed.length === 0) {
+                alert("تعذر قراءة الرسائل! تأكد أن الملف هو تصدير محادثة واتساب سليم.");
                 return;
             }
 
-            list.sort((a, b) => a.timestamp - b.timestamp);
-            const firstTime = list[0].timestamp;
+            parsed.sort((a, b) => a.timestamp - b.timestamp);
+
             const now = Date.now();
-            const delta = now - firstTime;
+            const firstTime = parsed[0].timestamp;
+            const offset = now - firstTime;
 
-            localStorage.setItem('chat_pending', JSON.stringify(list));
-            localStorage.setItem('chat_delivered', JSON.stringify([]));
-            localStorage.setItem('chat_offset', delta.toString());
+            pendingList = parsed;
+            deliveredList = [];
+            simulationOffset = offset;
 
-            alert("تم استيراد " + list.length + " رسالة بنجاح وبدء الجدولة اللحظية");
-            closeSettingsModal();
-            loadAndStartSimulation();
+            localStorage.setItem('sys_pending', JSON.stringify(pendingList));
+            localStorage.setItem('sys_delivered', JSON.stringify([]));
+            localStorage.setItem('sys_offset', offset.toString());
+
+            alert(`تم استيراد ${parsed.length} رسالة بنجاح وبدأت المحاكاة!`);
+            toggleConfigModal();
+            loadStoredState();
         }
 
-        function resetAllChat() {
-            if (confirm("هل تريد مسح جميع الرسائل وإعادة البدء؟")) {
-                localStorage.removeItem('chat_pending');
-                localStorage.removeItem('chat_delivered');
-                localStorage.removeItem('chat_offset');
-                document.getElementById('chatMessages').innerHTML = '<div class="empty-placeholder">تم تفريغ المحادثة. ادخل للإعدادات لاستيراد ملف جديد.</div>';
-                closeSettingsModal();
+        function clearAllData() {
+            if (confirm("هل تريد تفريغ كل البيانات وإعادة ضبط المحادثة؟")) {
+                localStorage.removeItem('sys_pending');
+                localStorage.removeItem('sys_delivered');
+                localStorage.removeItem('sys_offset');
+                pendingList = [];
+                deliveredList = [];
+                simulationOffset = 0;
+                document.getElementById('chatFlow').innerHTML = `
+                    <div class="system-notice" id="initialNotice">
+                        تم مسح المحادثة بالكامل.<br>اضغط على <b>تحكم ⚙️</b> لاستيراد ملف جديد.
+                    </div>
+                `;
+                refreshHud();
+                toggleConfigModal();
             }
         }
 
-        // محرك المحاكاة اللحظية بالثانية
-        let pendingMessages = [];
-        let deliveredMessages = [];
-        let offsetDelta = 0;
-
-        function loadAndStartSimulation() {
-            pendingMessages = JSON.parse(localStorage.getItem('chat_pending') || '[]');
-            deliveredMessages = JSON.parse(localStorage.getItem('chat_delivered') || '[]');
-            offsetDelta = parseInt(localStorage.getItem('chat_offset') || '0');
-
-            renderDelivered();
-
-            // فحص كل ثانية
-            setInterval(checkTick, 1000);
-        }
-
-        function checkTick() {
-            if (pendingMessages.length === 0 || offsetDelta === 0) return;
-
-            const simulatedTarget = Date.now() - offsetDelta;
-            let deliveredNow = false;
-
-            while (pendingMessages.length > 0 && pendingMessages[0].timestamp <= simulatedTarget) {
-                const nextMsg = pendingMessages.shift();
-                deliveredMessages.push(nextMsg);
-                appendBubble(nextMsg);
-                deliveredNow = true;
-
-                if (!nextMsg.isMe) {
-                    playChime();
-                }
-            }
-
-            if (deliveredNow) {
-                localStorage.setItem('chat_pending', JSON.stringify(pendingMessages));
-                localStorage.setItem('chat_delivered', JSON.stringify(deliveredMessages));
-                scrollToBottom();
-            }
-        }
-
-        function renderDelivered() {
-            const container = document.getElementById('chatMessages');
-            if (deliveredMessages.length > 0) {
-                container.innerHTML = '';
-                deliveredMessages.forEach(appendBubble);
-                scrollToBottom();
-            }
-        }
-
-        function appendBubble(msg) {
-            const ph = document.getElementById('placeholder');
-            if (ph) ph.remove();
-
-            const container = document.getElementById('chatMessages');
-            const row = document.createElement('div');
-            row.className = 'msg-row ' + (msg.isMe ? 'sent' : 'received');
-
-            const d = new Date(msg.timestamp);
-            let hours = d.getHours();
-            const minutes = d.getMinutes().toString().padStart(2, '0');
-            const ampm = hours >= 12 ? 'م' : 'ص';
-            hours = hours % 12 || 12;
-            const timeStr = hours + ':' + minutes + ' ' + ampm;
-
-            row.innerHTML = `
-                <div class="bubble">${escapeHtml(msg.message)}</div>
-                <div class="msg-time">${timeStr}</div>
-            `;
-            container.appendChild(row);
-        }
-
-        function scrollToBottom() {
-            const c = document.getElementById('chatMessages');
-            c.scrollTop = c.scrollHeight;
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        function toggleConfigModal() {
+            const m = document.getElementById('configModal');
+            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
         }
 
         window.onload = function() {
-            loadAndStartSimulation();
+            loadStoredState();
         };
     </script>
 </body>
