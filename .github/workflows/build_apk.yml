@@ -1,0 +1,46 @@
+name: Build Nizam APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Force Generate Fresh Android Project
+        run: |
+          rm -rf android 
+          flutter create . --platforms android --org com.system.nizam
+          flutter pub get
+
+      - name: Configure App Name and Permissions
+        run: |
+          # حقن إذن الوصول للإنترنت
+          perl -pi -e 's/<application/<uses-permission android:name="android.permission.INTERNET"\/>\n    <application/g' android/app/src/main/AndroidManifest.xml
+          # تعيين اسم التطبيق على الهاتف ليكون نظام
+          perl -pi -e 's/android:label="[^"]*"/android:label="نظام"/g' android/app/src/main/AndroidManifest.xml
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nizam-System-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
