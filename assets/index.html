@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نظام</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #000000;
+            --surface-dark: #121212;
+            --bubble-received: #262626;
+            --bubble-sent-grad: linear-gradient(135deg, #7024c4, #c13584, #e1306c, #fd1d1d);
+            --text-light: #ffffff;
+            --text-muted: #8e8e8e;
+            --border-color: #1f1f1f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* شاشة القفل السرية */
+        #lockScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .lock-icon {
+            font-size: 40px;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .lock-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #efefef;
+            margin-bottom: 24px;
+        }
+
+        .pin-dots {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 35px;
+        }
+
+        .pin-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #555;
+            transition: all 0.2s ease;
+        }
+
+        .pin-dot.filled {
+            background-color: #ffffff;
+            border-color: #ffffff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 72px);
+            gap: 18px;
+        }
+
+        .key-btn {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #1c1c1e;
+            color: #ffffff;
+            border: none;
+            font-size: 1.6rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .key-btn:active {
+            background: #333336;
+        }
+
+        /* الشريط العلوي للإنستغرام */
+        header.insta-header {
+            height: 58px;
+            background: var(--bg-dark);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 10;
+        }
+
+        .header-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar-box {
+            position: relative;
+            width: 40px;
+            height: 40px;
+        }
+
+        .avatar-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #fff;
+            border: 1px solid #3a3a3a;
+        }
+
+        .online-dot {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 11px;
+            height: 11px;
+            background: #00ba34;
+            border: 2px solid #000;
+            border-radius: 50%;
+        }
+
+        .header-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .user-status {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* حاوية الرسائل */
+        #chatMessages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            scroll-behavior: smooth;
+        }
+
+        .empty-placeholder {
+            margin: auto;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            max-width: 280px;
+        }
+
+        .msg-row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .msg-row.sent {
+            align-items: flex-end;
+        }
+
+        .msg-row.received {
+            align-items: flex-start;
+        }
+
+        .bubble {
+            max-width: 76%;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .msg-row.sent .bubble {
+            background: var(--bubble-sent-grad);
+            color: #ffffff;
+            border-radius: 18px 18px 4px 18px;
+        }
+
+        .msg-row.received .bubble {
+            background-color: var(--bubble-received);
+            color: #ffffff;
+            border-radius: 18px 18px 18px 4px;
+        }
+
+        .msg-time {
+            font-size: 0.65rem;
+            color: #666;
+            margin-top: 3px;
+            padding: 0 4px;
+        }
+
+        /* الشريط السفلي الوهمي للإنستغرام */
+        .insta-footer {
+            height: 52px;
+            background: var(--bg-dark);
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-camera {
+            width: 32px;
+            height: 32px;
+            background: #0095f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            color: #fff;
+        }
+
+        .footer-input {
+            flex: 1;
+            height: 38px;
+            background: #262626;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        .footer-icons {
+            display: flex;
+            gap: 12px;
+            font-size: 1.15rem;
+            color: #fff;
+        }
+
+        /* نافذة الإعدادات وضبط الرمز السري */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: #181818;
+            border: 1px solid #333;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            text-align: center;
+            border-bottom: 1px solid #2a2a2a;
+            padding-bottom: 10px;
+        }
+
+        .field-group {
+            margin-bottom: 14px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .text-input {
+            width: 100%;
+            background: #262626;
+            border: 1px solid #3d3d3d;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            direction: ltr;
+            text-align: center;
+        }
+
+        .btn-action {
+            width: 100%;
+            background: #0095f6;
+            color: #ffffff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-action:active {
+            opacity: 0.85;
+        }
+
+        .btn-danger {
+            background: #c62828;
+            margin-top: 10px;
+        }
+
+        .btn-close {
+            background: #333;
+            color: #ddd;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. شاشة القفل السرية (الرمز الافتراضي: 0000) -->
+    <div id="lockScreen">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-title">نظام الحماية</div>
+        <div class="pin-dots">
+            <div class="pin-dot" id="dot0"></div>
+            <div class="pin-dot" id="dot1"></div>
+            <div class="pin-dot" id="dot2"></div>
+            <div class="pin-dot" id="dot3"></div>
+        </div>
+        <div class="keypad">
+            <button class="key-btn" onclick="pressPin('1')">1</button>
+            <button class="key-btn" onclick="pressPin('2')">2</button>
+            <button class="key-btn" onclick="pressPin('3')">3</button>
+            <button class="key-btn" onclick="pressPin('4')">4</button>
+            <button class="key-btn" onclick="pressPin('5')">5</button>
+            <button class="key-btn" onclick="pressPin('6')">6</button>
+            <button class="key-btn" onclick="pressPin('7')">7</button>
+            <button class="key-btn" onclick="pressPin('8')">8</button>
+            <button class="key-btn" onclick="pressPin('9')">9</button>
+            <button class="key-btn" style="font-size: 1.1rem;" onclick="clearPin()">C</button>
+            <button class="key-btn" onclick="pressPin('0')">0</button>
+            <button class="key-btn" style="font-size: 1.2rem;" onclick="backspacePin()">⌫</button>
+        </div>
+    </div>
+
+    <!-- 2. الشريط العلوي بنمط إنستغرام -->
+    <header class="insta-header">
+        <div class="header-profile">
+            <button class="icon-btn" onclick="lockNow()">❯</button>
+            <div class="avatar-box">
+                <div class="avatar-circle">M</div>
+                <div class="online-dot"></div>
+            </div>
+            <div class="header-details">
+                <span class="user-name">مريم</span>
+                <span class="user-status">نشط الآن</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="openSettingsModal()" title="الإعدادات وضبط الرمز">⚙️</button>
+            <button class="icon-btn">📞</button>
+            <button class="icon-btn">📹</button>
+        </div>
+    </header>
+
+    <!-- 3. منطقة الرسائل والبث اللحظي -->
+    <main id="chatMessages">
+        <div class="empty-placeholder" id="placeholder">
+            اضغط على أيقونة الإعدادات (⚙️) بالأعلى لرفع ملف المحادثة أو لصق النص، وضبط الرمز السري.
+        </div>
+    </main>
+
+    <!-- 4. شريط الإدخال السفلي للإنستغرام -->
+    <footer class="insta-footer">
+        <div class="footer-camera">📷</div>
+        <div class="footer-input">مراسلة...</div>
+        <div class="footer-icons">
+            <span>🎙️</span>
+            <span>🖼️</span>
+            <span>❤️</span>
+        </div>
+    </footer>
+
+    <!-- 5. نافذة الإعدادات وتعديل الرمز السري ورفع البيانات -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-title">إعدادات النظام</div>
+
+            <!-- قسم تعديل الرمز السري -->
+            <div class="field-group">
+                <label class="field-label">الرمز السري الحالي:</label>
+                <input type="password" id="currentPinInput" class="text-input" maxlength="4" placeholder="••••">
+            </div>
+            <div class="field-group">
+                <label class="field-label">الرمز السري الجديد (4 أرقام):</label>
+                <input type="password" id="newPinInput" class="text-input" maxlength="4" placeholder="••••">
+            </div>
+            <button class="btn-action" onclick="saveNewPin()">تحديث رمز القفل</button>
+
+            <hr style="border: 0; border-top: 1px solid #333; margin: 18px 0;">
+
+            <!-- قسم استيراد المحادثة -->
+            <div class="field-group">
+                <label class="field-label">استيراد ملف المحادثة (.txt):</label>
+                <input type="file" id="fileUploadInput" accept=".txt" style="color: #bbb; font-size: 0.85rem;" onchange="handleFileSelected(event)">
+            </div>
+            <div class="field-group">
+                <label class="field-label">أو الصق نص المحادثة هنا مباشرة:</label>
+                <textarea id="rawChatPaste" class="text-input" style="height: 70px; direction: rtl; text-align: right; resize: none;" placeholder="الصق النص هنا..."></textarea>
+            </div>
+            <button class="btn-action" style="background:#2e7d32;" onclick="processPastedChat()">بدء المحاكاة بالوقت الفعلي</button>
+
+            <button class="btn-action btn-danger" onclick="resetAllChat()">مسح المحادثة وإعادة البدء</button>
+            <button class="btn-action btn-close" onclick="closeSettingsModal()">إغلاق</button>
+        </div>
+    </div>
+
+    <script>
+        // نظام الصوت التنبيهي عبر Web Audio API
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playChime() {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch(e) {}
+        }
+
+        // إدارة الرمز السري (الافتراضي 0000)
+        let currentEnteredPin = "";
+        function getStoredPin() {
+            return localStorage.getItem('system_pin') || "0000";
+        }
+
+        function pressPin(digit) {
+            if (currentEnteredPin.length < 4) {
+                currentEnteredPin += digit;
+                updateDots();
+                if (currentEnteredPin.length === 4) {
+                    setTimeout(validatePin, 100);
+                }
+            }
+        }
+
+        function backspacePin() {
+            currentEnteredPin = currentEnteredPin.slice(0, -1);
+            updateDots();
+        }
+
+        function clearPin() {
+            currentEnteredPin = "";
+            updateDots();
+        }
+
+        function updateDots() {
+            for (let i = 0; i < 4; i++) {
+                const dot = document.getElementById('dot' + i);
+                if (i < currentEnteredPin.length) dot.classList.add('filled');
+                else dot.classList.remove('filled');
+            }
+        }
+
+        function validatePin() {
+            if (currentEnteredPin === getStoredPin()) {
+                document.getElementById('lockScreen').style.display = 'none';
+                currentEnteredPin = "";
+                updateDots();
+            } else {
+                alert("رمز المرور غير صحيح");
+                clearPin();
+            }
+        }
+
+        function lockNow() {
+            document.getElementById('lockScreen').style.display = 'flex';
+            clearPin();
+        }
+
+        function saveNewPin() {
+            const cur = document.getElementById('currentPinInput').value;
+            const next = document.getElementById('newPinInput').value;
+
+            if (cur !== getStoredPin()) {
+                alert("الرمز الحالي غير صحيح");
+                return;
+            }
+            if (!/^\d{4}$/.test(next)) {
+                alert("الرمز الجديد يجب أن يتكون من 4 أرقام");
+                return;
+            }
+
+            localStorage.setItem('system_pin', next);
+            alert("تم تحديث رمز القفل بنجاح");
+            document.getElementById('currentPinInput').value = "";
+            document.getElementById('newPinInput').value = "";
+            closeSettingsModal();
+        }
+
+        function openSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        // محرك قراءة واستيراد المحادثات
+        const msgRegex = /^\[?[\u200e\u200f\u202a-\u202e]?(\d{1,4}[\/\.\-]\d{1,2}[\/\.\-]\d{1,4})[،,\s]+([\d:]+)\s*([صمAPMapm]*)\]?\s*[-–:]?\s*([^:]+):\s*(.*)$/;
+
+        function parseRawChat(text) {
+            const lines = text.split('\n');
+            const parsed = [];
+            let last = null;
+
+            for (let raw of lines) {
+                let line = raw.replace(/[\u200e\u200f\u202a-\u202e‏]/g, '').trim();
+                if (!line) continue;
+
+                let match = line.match(msgRegex);
+                if (match) {
+                    let d = match[1].replace(/\//g, '-').replace(/\./g, '-');
+                    let t = match[2];
+                    let ap = match[3] || '';
+                    let sender = match[4].trim();
+                    let content = match[5].trim();
+
+                    let timestamp = parseCustomDate(d, t, ap);
+                    if (timestamp) {
+                        let isMe = sender.toLowerCase().includes("majd") || sender.includes("مجد");
+                        last = { id: Date.now() + Math.random(), sender, message: content, timestamp, isMe };
+                        parsed.push(last);
+                    }
+                } else if (last) {
+                    last.message += "\n" + line;
+                }
+            }
+            return parsed;
+        }
+
+        function parseCustomDate(dateStr, timeStr, ampm) {
+            try {
+                let parts = dateStr.split('-');
+                let day, month, year;
+                if (parts[0].length === 4) {
+                    year = parseInt(parts[0]); month = parseInt(parts[1]) - 1; day = parseInt(parts[2]);
+                } else {
+                    day = parseInt(parts[0]); month = parseInt(parts[1]) - 1; year = parseInt(parts[2]);
+                    if (year < 100) year += 2000;
+                }
+
+                let tParts = timeStr.split(':');
+                let h = parseInt(tParts[0]);
+                let m = parseInt(tParts[1]);
+                let s = tParts[2] ? parseInt(tParts[2]) : 0;
+
+                if ((ampm.includes('م') || ampm.toUpperCase().includes('PM')) && h < 12) h += 12;
+                if ((ampm.includes('ص') || ampm.toUpperCase().includes('AM')) && h === 12) h = 0;
+
+                return new Date(year, month, day, h, m, s).getTime();
+            } catch(e) {
+                return null;
+            }
+        }
+
+        function handleFileSelected(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                initNewChatData(evt.target.result);
+            };
+            reader.readAsText(file);
+        }
+
+        function processPastedChat() {
+            const val = document.getElementById('rawChatPaste').value;
+            if (!val.trim()) {
+                alert("يرجى لصق النص أولاً");
+                return;
+            }
+            initNewChatData(val);
+        }
+
+        function initNewChatData(rawText) {
+            const list = parseRawChat(rawText);
+            if (list.length === 0) {
+                alert("تعذر قراءة الرسائل، تأكد من صحة نص تصدير واتساب");
+                return;
+            }
+
+            list.sort((a, b) => a.timestamp - b.timestamp);
+            const firstTime = list[0].timestamp;
+            const now = Date.now();
+            const delta = now - firstTime;
+
+            localStorage.setItem('chat_pending', JSON.stringify(list));
+            localStorage.setItem('chat_delivered', JSON.stringify([]));
+            localStorage.setItem('chat_offset', delta.toString());
+
+            alert("تم استيراد " + list.length + " رسالة بنجاح وبدء الجدولة اللحظية");
+            closeSettingsModal();
+            loadAndStartSimulation();
+        }
+
+        function resetAllChat() {
+            if (confirm("هل تريد مسح جميع الرسائل وإعادة البدء؟")) {
+                localStorage.removeItem('chat_pending');
+                localStorage.removeItem('chat_delivered');
+                localStorage.removeItem('chat_offset');
+                document.getElementById('chatMessages').innerHTML = '<div class="empty-placeholder">تم تفريغ المحادثة. ادخل للإعدادات لاستيراد ملف جديد.</div>';
+                closeSettingsModal();
+            }
+        }
+
+        // محرك المحاكاة اللحظية بالثانية
+        let pendingMessages = [];
+        let deliveredMessages = [];
+        let offsetDelta = 0;
+
+        function loadAndStartSimulation() {
+            pendingMessages = JSON.parse(localStorage.getItem('chat_pending') || '[]');
+            deliveredMessages = JSON.parse(localStorage.getItem('chat_delivered') || '[]');
+            offsetDelta = parseInt(localStorage.getItem('chat_offset') || '0');
+
+            renderDelivered();
+
+            // فحص كل ثانية
+            setInterval(checkTick, 1000);
+        }
+
+        function checkTick() {
+            if (pendingMessages.length === 0 || offsetDelta === 0) return;
+
+            const simulatedTarget = Date.now() - offsetDelta;
+            let deliveredNow = false;
+
+            while (pendingMessages.length > 0 && pendingMessages[0].timestamp <= simulatedTarget) {
+                const nextMsg = pendingMessages.shift();
+                deliveredMessages.push(nextMsg);
+                appendBubble(nextMsg);
+                deliveredNow = true;
+
+                if (!nextMsg.isMe) {
+                    playChime();
+                }
+            }
+
+            if (deliveredNow) {
+                localStorage.setItem('chat_pending', JSON.stringify(pendingMessages));
+                localStorage.setItem('chat_delivered', JSON.stringify(deliveredMessages));
+                scrollToBottom();
+            }
+        }
+
+        function renderDelivered() {
+            const container = document.getElementById('chatMessages');
+            if (deliveredMessages.length > 0) {
+                container.innerHTML = '';
+                deliveredMessages.forEach(appendBubble);
+                scrollToBottom();
+            }
+        }
+
+        function appendBubble(msg) {
+            const ph = document.getElementById('placeholder');
+            if (ph) ph.remove();
+
+            const container = document.getElementById('chatMessages');
+            const row = document.createElement('div');
+            row.className = 'msg-row ' + (msg.isMe ? 'sent' : 'received');
+
+            const d = new Date(msg.timestamp);
+            let hours = d.getHours();
+            const minutes = d.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'م' : 'ص';
+            hours = hours % 12 || 12;
+            const timeStr = hours + ':' + minutes + ' ' + ampm;
+
+            row.innerHTML = `
+                <div class="bubble">${escapeHtml(msg.message)}</div>
+                <div class="msg-time">${timeStr}</div>
+            `;
+            container.appendChild(row);
+        }
+
+        function scrollToBottom() {
+            const c = document.getElementById('chatMessages');
+            c.scrollTop = c.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        window.onload = function() {
+            loadAndStartSimulation();
+        };
+    </script>
+</body>
+</html>
